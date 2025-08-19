@@ -1,708 +1,446 @@
-import React, { useState, useMemo } from 'react';
+import { useState } from 'react';
 
-const CompleteMindGalaxy = () => {
-  const [selectedOrbit, setSelectedOrbit] = useState(null);
-  const [hoveredElement, setHoveredElement] = useState(null);
-  const [expandedSection, setExpandedSection] = useState(null);
+interface Factor {
+  name: string;
+  korean: string;
+  description: string;
+}
 
-  // 전체 데이터 (원래 버전과 동일)
-  const unwholesomeFactors = [
-    { name: "Moha", korean: "무명", description: "어리석음과 무지" },
-    { name: "Ahirika", korean: "무참", description: "부끄러움이 없음" },
-    { name: "Anottappa", korean: "무외", description: "양심이 없음" },
-    { name: "Uddhacca", korean: "들뜸", description: "마음의 들뜸" },
-    { name: "Lobha", korean: "탐욕", description: "욕심과 집착" },
-    { name: "Diṭṭhi", korean: "삿된견해", description: "잘못된 이해" },
-    { name: "Māna", korean: "자만", description: "오만함" },
-    { name: "Dosa", korean: "성냄", description: "분노와 미움" },
-    { name: "Issā", korean: "질투", description: "시기와 질투" },
-    { name: "Macchariya", korean: "인색함", description: "아까워함" },
-    { name: "Kukkucca", korean: "후회", description: "걱정과 후회" },
-    { name: "Thīna", korean: "게으름", description: "정신적 둔함" },
-    { name: "Middha", korean: "혼침", description: "혼미함" },
-    { name: "Vicikicchā", korean: "의심", description: "의심과 회의" }
+interface Orbit {
+  id: string;
+  radius: number;
+  color: string;
+  factors: Factor[];
+}
+
+const MindGalaxy = () => {
+  const [hoveredElement, setHoveredElement] = useState<Factor | null>(null);
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [selectedOrbit, setSelectedOrbit] = useState<string | null>(null);
+
+  // 핵심 요소들 정의
+  const coreFactors: Factor[] = [
+    { name: "Wisdom", korean: "지혜", description: "깊은 통찰력과 올바른 판단력" },
+    { name: "Compassion", korean: "자비", description: "타인에 대한 깊은 이해와 사랑" },
+    { name: "Courage", korean: "용기", description: "옳은 일을 행하는 담대함" },
+    { name: "Justice", korean: "정의", description: "공정함과 도덕적 원칙" },
+    { name: "Temperance", korean: "절제", description: "균형과 자제력" },
+    { name: "Faith", korean: "신앙", description: "영적 믿음과 확신" },
+    { name: "Hope", korean: "희망", description: "미래에 대한 긍정적 기대" },
+    { name: "Love", korean: "사랑", description: "무조건적인 애정과 헌신" }
   ];
 
-  const universalFactors = [
-    { name: "Phassa", korean: "접촉", description: "감각기관과 대상의 만남" },
-    { name: "Vedana", korean: "느낌", description: "즐거움, 괴로움, 중성의 느낌" },
-    { name: "Saññā", korean: "인식", description: "대상을 알아차림" },
-    { name: "Cetanā", korean: "의도", description: "마음의 의지작용" },
-    { name: "Ekaggatā", korean: "한마음", description: "마음의 집중" },
-    { name: "Jīvitindriya", korean: "생명력", description: "정신적 생명력" },
-    { name: "Manasikāra", korean: "마음기울임", description: "주의집중" }
+  const secondOrbitFactors: Factor[] = [
+    { name: "Honesty", korean: "정직", description: "진실함과 투명성" },
+    { name: "Humility", korean: "겸손", description: "자신을 낮추는 마음" },
+    { name: "Patience", korean: "인내", description: "끈기와 참을성" },
+    { name: "Kindness", korean: "친절", description: "따뜻한 마음과 배려" },
+    { name: "Forgiveness", korean: "용서", description: "관대함과 화해" },
+    { name: "Gratitude", korean: "감사", description: "고마워하는 마음" },
+    { name: "Perseverance", korean: "인내", description: "끝까지 견디는 힘" },
+    { name: "Loyalty", korean: "충성", description: "변함없는 신의" },
+    { name: "Generosity", korean: "관대", description: "베푸는 마음" },
+    { name: "Responsibility", korean: "책임", description: "의무를 다하는 자세" }
   ];
 
-  const particularFactors = [
-    { name: "Vitakka", korean: "시작적용", description: "대상으로 마음을 향함" },
-    { name: "Vicāra", korean: "지속숙고", description: "대상에 마음을 머물게 함" },
-    { name: "Adhimokkha", korean: "결심", description: "확고한 결정" },
-    { name: "Vīriya", korean: "정진", description: "노력하는 에너지" },
-    { name: "Pīti", korean: "희열", description: "기쁨과 환희" },
-    { name: "Chanda", korean: "욕구", description: "선한 의욕" }
+  const thirdOrbitFactors: Factor[] = [
+    { name: "Diligence", korean: "근면", description: "성실하고 부지런함" },
+    { name: "Prudence", korean: "신중", description: "깊이 생각하고 판단함" },
+    { name: "Discipline", korean: "규율", description: "자기 통제와 질서" },
+    { name: "Empathy", korean: "공감", description: "타인의 감정을 이해함" },
+    { name: "Sincerity", korean: "성실", description: "진심과 정성" },
+    { name: "Respect", korean: "존중", description: "타인을 귀히 여김" },
+    { name: "Mindfulness", korean: "주의깊음", description: "현재에 집중하는 의식" },
+    { name: "Acceptance", korean: "수용", description: "있는 그대로 받아들임" },
+    { name: "Serenity", korean: "평온", description: "마음의 고요함" },
+    { name: "Contentment", korean: "만족", description: "현재에 만족하는 마음" },
+    { name: "Mindfulness", korean: "마음챙김", description: "의식적 주의와 인식" },
+    { name: "Balance", korean: "균형", description: "조화로운 상태" }
   ];
 
-  const beautifulFactors = [
-    { name: "Saddhā", korean: "믿음", description: "청정한 신뢰" },
-    { name: "Sati", korean: "염", description: "마음챙김" },
-    { name: "Hirī", korean: "부끄러움", description: "도덕적 부끄러움" },
-    { name: "Ottappa", korean: "양심", description: "도덕적 두려움" },
-    { name: "Alobha", korean: "무탐", description: "탐욕이 없음" },
-    { name: "Adosa", korean: "무진", description: "성냄이 없음" },
-    { name: "Tatramajjhattatā", korean: "평정", description: "마음의 균형" },
-    { name: "Kāya-passaddhi", korean: "몸고요함", description: "정신적 요소의 고요함" },
-    { name: "Citta-passaddhi", korean: "마음고요함", description: "마음의 고요함" },
-    { name: "Kāya-lahutā", korean: "몸가벼움", description: "정신적 요소의 가벼움" },
-    { name: "Citta-lahutā", korean: "마음가벼움", description: "마음의 가벼움" },
-    { name: "Kāya-mudutā", korean: "몸유연함", description: "정신적 요소의 유연함" },
-    { name: "Citta-mudutā", korean: "마음유연함", description: "마음의 유연함" },
-    { name: "Kāya-kammaññatā", korean: "몸적응성", description: "정신적 요소의 적응성" },
-    { name: "Citta-kammaññatā", korean: "마음적응성", description: "마음의 적응성" },
-    { name: "Kāya-pāguññatā", korean: "몸숙련성", description: "정신적 요소의 숙련성" },
-    { name: "Citta-pāguññatā", korean: "마음숙련성", description: "마음의 숙련성" },
-    { name: "Kāya-ujukatā", korean: "몸정직함", description: "정신적 요소의 정직함" }
+  const fourthOrbitFactors: Factor[] = [
+    { name: "Creativity", korean: "창의성", description: "새로운 것을 만드는 능력" },
+    { name: "Innovation", korean: "혁신", description: "기존의 틀을 벗어난 사고" },
+    { name: "Curiosity", korean: "호기심", description: "알고자 하는 강한 욕구" },
+    { name: "Adaptability", korean: "적응력", description: "변화에 유연하게 대응" },
+    { name: "Resilience", korean: "회복력", description: "어려움을 극복하는 힘" },
+    { name: "Optimism", korean: "낙관", description: "긍정적인 관점" },
+    { name: "Enthusiasm", korean: "열정", description: "강한 의욕과 에너지" },
+    { name: "Determination", korean: "결단력", description: "확고한 의지" },
+    { name: "Focus", korean: "집중", description: "한 가지에 몰두하는 능력" },
+    { name: "Excellence", korean: "탁월함", description: "뛰어난 품질과 성과" },
+    { name: "Leadership", korean: "리더십", description: "타인을 이끄는 능력" },
+    { name: "Communication", korean: "소통", description: "효과적인 의사전달" },
+    { name: "Collaboration", korean: "협력", description: "함께 일하는 능력" },
+    { name: "Learning", korean: "학습", description: "지속적인 성장" },
+    { name: "Growth", korean: "성장", description: "발전과 진보" }
   ];
 
-  const wisdomFactor = [
-    { name: "Paññā", korean: "지혜", description: "사성제를 꿰뚫는 통찰지혜" }
+  const orbits: Orbit[] = [
+    { id: 'core', radius: 120, color: '#ffd700', factors: coreFactors },
+    { id: 'second', radius: 200, color: '#87ceeb', factors: secondOrbitFactors },
+    { id: 'third', radius: 280, color: '#98fb98', factors: thirdOrbitFactors },
+    { id: 'fourth', radius: 360, color: '#dda0dd', factors: fourthOrbitFactors }
   ];
 
-  const orbitData = [
-    { id: 'S', name: 'S 궤도', description: '보편적 마음상태', items: universalFactors, color: '#3b82f6', count: 7 },
-    { id: 'P', name: 'P 궤도', description: '특별한 마음상태', items: particularFactors, color: '#10b981', count: 6 },
-    { id: 'D', name: 'D 궤도', description: '아름다운 마음상태', items: beautifulFactors, color: '#8b5cf6', count: 18 },
-    { id: 'F', name: 'F 궤도', description: '지혜', items: wisdomFactor, color: '#f59e0b', count: 1 }
-  ];
-
-  const allGoodFactors = [...universalFactors, ...particularFactors, ...beautifulFactors, ...wisdomFactor];
-
-  // 성운 요소들 (위치 고정)
-  const nebulaElements = useMemo(() => {
-    return [...Array(70)].map((_, i) => {
-      const factor = unwholesomeFactors[i % unwholesomeFactors.length];
-      const size = Math.random() * 6 + 8;
-      const opacity = Math.random() * 0.4 + 0.6;
-      const colors = ['#ef4444', '#f97316', '#8b5cf6', '#ec4899', '#f59e0b'];
-      const color = colors[i % colors.length];
-      const x = Math.random() * 100;
-      const y = Math.random() * 100;
-      
-      return {
-        id: i,
-        factor,
-        size,
-        opacity,
-        color,
-        x,
-        y,
-        animationDelay: Math.random() * 4
-      };
-    });
-  }, []);
-
-  const renderOrbitElements = (elements, orbitRadius, color, orbitId) => {
-    return elements.map((element, index) => {
-      const angle = (index * 360) / elements.length;
-      const radian = (angle * Math.PI) / 180;
-      const x = Math.cos(radian) * orbitRadius;
-      const y = Math.sin(radian) * orbitRadius;
+  const renderOrbitElements = (elements: Factor[], orbitRadius: number, color: string, orbitId: string) => {
+    return elements.map((element: Factor, index: number) => {
+      const angle = (index / elements.length) * 2 * Math.PI;
+      const x = orbitRadius * Math.cos(angle);
+      const y = orbitRadius * Math.sin(angle);
       
       return (
         <div
           key={`${orbitId}-${index}`}
           style={{
-            position: 'absolute',
-            left: `calc(50% + ${x}px - 24px)`,
-            top: `calc(50% + ${y}px - 24px)`,
-            width: '48px',
-            height: '48px',
-            background: `linear-gradient(135deg, ${color}, ${color}dd)`,
+            position: 'absolute' as const,
+            left: `calc(50% + ${x}px)`,
+            top: `calc(50% + ${y}px)`,
+            transform: 'translate(-50%, -50%)',
+            width: orbitId === 'core' ? '80px' : orbitId === 'second' ? '70px' : orbitId === 'third' ? '60px' : '50px',
+            height: orbitId === 'core' ? '80px' : orbitId === 'second' ? '70px' : orbitId === 'third' ? '60px' : '50px',
             borderRadius: '50%',
+            background: `radial-gradient(circle, ${color}, ${color}99)`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'white',
-            fontSize: '8px',
-            fontWeight: '500',
-            boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
             cursor: 'pointer',
-            transition: 'transform 0.3s ease',
-            border: '2px solid white',
-            textAlign: 'center',
-            lineHeight: '1.1'
+            transition: 'all 0.3s ease',
+            border: `2px solid ${color}`,
+            boxShadow: `0 0 20px ${color}66`,
+            fontSize: orbitId === 'core' ? '10px' : orbitId === 'second' ? '9px' : '8px',
+            fontWeight: 'bold',
+            textAlign: 'center' as const,
+            color: '#000',
+            zIndex: 10,
+            animation: `float-${orbitId} ${15 + index}s ease-in-out infinite`,
           }}
           onMouseEnter={() => setHoveredElement(element)}
           onMouseLeave={() => setHoveredElement(null)}
-          onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.25)'}
-          onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
         >
-          {element.korean}
+          <div style={{ lineHeight: '1.1' }}>
+            <div>{element.korean}</div>
+            <div style={{ fontSize: '7px', opacity: 0.8 }}>{element.name}</div>
+          </div>
         </div>
       );
     });
   };
 
-  const containerStyle = {
+  const containerStyle: React.CSSProperties = {
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #1e3a8a 0%, #7c3aed 50%, #ec4899 100%)',
-    padding: '1rem',
-    position: 'relative',
+    background: 'radial-gradient(ellipse at center, #1a202c 0%, #000000 100%)',
+    padding: '20px',
+    position: 'relative' as const,
     overflow: 'hidden',
     fontFamily: 'Arial, sans-serif',
-    color: 'white'
+    color: 'white',
   };
 
-  const nebulaStyle = {
-    position: 'absolute',
+  const nebulaStyle: React.CSSProperties = {
+    position: 'absolute' as const,
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    pointerEvents: 'none'
+    pointerEvents: 'none' as const,
   };
 
   return (
     <div style={containerStyle}>
-      {/* 어둠의 성운 배경 */}
+      {/* 배경 성운 효과 */}
       <div style={nebulaStyle}>
-        {nebulaElements.map((element) => (
+        {[...Array(50)].map((_, i) => (
           <div
-            key={element.id}
+            key={i}
             style={{
-              position: 'absolute',
-              left: `${element.x}%`,
-              top: `${element.y}%`,
-              zIndex: 30,
-              pointerEvents: 'auto',
-              cursor: 'pointer'
-            }}
-            onMouseEnter={() => setHoveredElement(element.factor)}
-            onMouseLeave={() => setHoveredElement(null)}
-          >
-            {/* 성운 가스 효과 */}
-            <div style={{
-              position: 'absolute',
-              width: `${element.size * 4}px`,
-              height: `${element.size * 4}px`,
-              left: `${-element.size * 2}px`,
-              top: `${-element.size * 2}px`,
-              background: element.color,
+              position: 'absolute' as const,
+              width: `${Math.random() * 4 + 1}px`,
+              height: `${Math.random() * 4 + 1}px`,
+              backgroundColor: '#ffffff',
               borderRadius: '50%',
-              filter: 'blur(8px)',
-              opacity: 0.2,
-              animation: `pulse 3s ease-in-out infinite`,
-              animationDelay: `${element.animationDelay}s`
-            }} />
-            
-            {/* 메인 점 */}
-            <div style={{
-              width: `${element.size}px`,
-              height: `${element.size}px`,
-              background: `linear-gradient(135deg, ${element.color}cc, ${element.color})`,
-              borderRadius: '50%',
-              opacity: element.opacity,
-              boxShadow: `0 0 10px ${element.color}`,
-              position: 'relative',
-              zIndex: 10,
-              transition: 'transform 0.3s ease'
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              opacity: Math.random() * 0.8 + 0.2,
+              animation: `twinkle ${Math.random() * 3 + 2}s ease-in-out infinite`,
             }}
-            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(2)'}
-            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-            />
-            
-            {/* 라벨 */}
-            <div style={{
-              position: 'absolute',
-              bottom: '100%',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              marginBottom: '4px',
-              opacity: 0.7,
-              pointerEvents: 'none'
-            }}>
-              <div style={{
-                background: 'rgba(0,0,0,0.9)',
-                color: 'white',
-                fontSize: '10px',
-                padding: '2px 4px',
-                borderRadius: '4px',
-                whiteSpace: 'nowrap',
-                border: '1px solid #666'
-              }}>
-                {element.factor.korean}
-              </div>
-            </div>
-          </div>
+          />
         ))}
       </div>
 
-      <div style={{ maxWidth: '1400px', margin: '0 auto', position: 'relative', zIndex: 10 }}>
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <h1 style={{
-            fontSize: '3rem',
-            fontWeight: 'bold',
-            marginBottom: '1rem',
-            background: 'linear-gradient(45deg, #fbbf24, #f97316)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text'
-          }}>
-            마음의 은하계
-          </h1>
-          <p style={{ fontSize: '1.2rem', opacity: 0.8, marginBottom: '0.5rem' }}>
-            Abhidhamma Mind Universe
-          </p>
-          <p style={{ fontSize: '0.9rem', opacity: 0.7 }}>
-            완전한 마음과 마음상태 시각화
-          </p>
+      {/* 메인 제목 */}
+      <div style={{ textAlign: 'center' as const, marginBottom: '30px', zIndex: 20, position: 'relative' as const }}>
+        <h1 style={{ 
+          fontSize: '3rem', 
+          background: 'linear-gradient(45deg, #ffd700, #87ceeb, #98fb98)', 
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+          marginBottom: '10px',
+          textShadow: '0 0 30px rgba(255, 215, 0, 0.5)'
+        }}>
+          마음 은하계 아키텍처
+        </h1>
+        <p style={{ fontSize: '1.2rem', color: '#b0c4de', marginBottom: '20px' }}>
+          Mind Galaxy Architecture
+        </p>
+      </div>
+
+      {/* 선악 분류 패널 */}
+      <div style={{ 
+        position: 'absolute' as const, 
+        top: '20px', 
+        left: '20px', 
+        right: '20px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        gap: '20px',
+        zIndex: 30
+      }}>
+        {/* 선한 요소들 */}
+        <div style={{
+          background: 'rgba(16, 185, 129, 0.1)',
+          border: '2px solid #10b981',
+          borderRadius: '15px',
+          padding: '15px',
+          minWidth: '200px',
+          backdropFilter: 'blur(10px)'
+        }}>
+          <div 
+            style={{
+              fontWeight: 'bold',
+              fontSize: '1.1rem',
+              marginBottom: '10px',
+              cursor: 'pointer',
+              padding: '5px',
+              borderRadius: '5px',
+              background: '#10b981',
+              color: 'white',
+              textAlign: 'center' as const
+            }}
+            onClick={() => setExpandedSection(expandedSection === 'good' ? null : 'good')}
+            onMouseOver={(e) => (e.target as HTMLElement).style.background = '#059669'}
+            onMouseOut={(e) => (e.target as HTMLElement).style.background = '#10b981'}
+          >
+            선한 요소들 (Good Elements) {expandedSection === 'good' ? '▼' : '▶'}
+          </div>
+          {expandedSection === 'good' && (
+            <div style={{ fontSize: '0.9rem', lineHeight: '1.4' }}>
+              <strong>핵심 덕목:</strong> 지혜, 자비, 용기, 정의, 절제, 신앙, 희망, 사랑<br/>
+              <strong>실천 덕목:</strong> 정직, 겸손, 인내, 친절, 용서, 감사, 충성, 관대<br/>
+              <strong>성장 덕목:</strong> 근면, 신중, 규율, 공감, 성실, 존중, 평온, 만족<br/>
+              <strong>혁신 덕목:</strong> 창의성, 호기심, 적응력, 회복력, 낙관, 열정, 리더십
+            </div>
+          )}
         </div>
 
-        {/* 상단 3열 레이아웃 */}
+        {/* 궤도 선택 패널 */}
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 2fr 1fr',
-          gap: '2rem',
-          marginBottom: '3rem'
+          background: 'rgba(139, 69, 19, 0.1)',
+          border: '2px solid #8b4513',
+          borderRadius: '15px',
+          padding: '15px',
+          minWidth: '200px',
+          backdropFilter: 'blur(10px)'
         }}>
-          {/* 좌측 - 선한 마음 상태 */}
-          <div>
-            <div style={{
-              background: 'rgba(0,0,0,0.5)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '12px',
-              padding: '1.5rem',
-              border: '2px solid #10b981'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#10b981', margin: 0 }}>
-                  선한 마음 은하계
-                </h2>
-                <div style={{
-                  background: '#10b981',
-                  color: 'white',
-                  padding: '0.25rem 0.75rem',
-                  borderRadius: '9999px',
-                  fontSize: '0.8rem',
-                  fontWeight: 'bold'
-                }}>
-                  32개
-                </div>
-              </div>
-              <p style={{ fontSize: '0.9rem', color: '#9ca3af', marginBottom: '1rem' }}>
-                중심 태양 주위를 도는 4개 궤도의 선한 정신요소들
-              </p>
-              
-              <button
-                style={{
-                  width: '100%',
-                  background: '#10b981',
-                  color: 'white',
-                  padding: '0.5rem',
-                  borderRadius: '8px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '0.9rem',
-                  transition: 'background 0.3s ease'
-                }}
-                onClick={() => setExpandedSection(expandedSection === 'good' ? null : 'good')}
-                onMouseOver={(e) => e.target.style.background = '#059669'}
-                onMouseOut={(e) => e.target.style.background = '#10b981'}
-              >
-                {expandedSection === 'good' ? '목록 접기' : '전체 목록 보기'}
-              </button>
-              
-              {expandedSection === 'good' && (
-                <div style={{
-                  marginTop: '1rem',
-                  maxHeight: '200px',
-                  overflowY: 'auto'
-                }}>
-                  {allGoodFactors.map((factor, index) => (
-                    <div key={index} style={{
-                      background: 'rgba(16, 185, 129, 0.2)',
-                      padding: '0.5rem',
-                      borderRadius: '6px',
-                      marginBottom: '0.5rem'
-                    }}>
-                      <div style={{ fontWeight: 'bold', color: '#10b981', fontSize: '0.8rem' }}>
-                        {factor.name}
-                      </div>
-                      <div style={{ fontSize: '0.7rem', color: '#34d399' }}>
-                        {factor.korean} - {factor.description}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* 궤도 정보 */}
-            <div style={{ marginTop: '1rem' }}>
-              {orbitData.map((orbit) => (
-                <div
-                  key={orbit.id}
-                  style={{
-                    background: 'rgba(0,0,0,0.4)',
-                    borderRadius: '8px',
-                    padding: '0.75rem',
-                    marginBottom: '0.75rem',
-                    border: `1px solid ${orbit.color}`,
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onClick={() => setSelectedOrbit(selectedOrbit === orbit.id ? null : orbit.id)}
-                  onMouseOver={(e) => e.currentTarget.style.borderColor = orbit.color + 'cc'}
-                  onMouseOut={(e) => e.currentTarget.style.borderColor = orbit.color}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ fontWeight: 'bold', color: orbit.color, margin: 0, fontSize: '0.9rem' }}>
-                      {orbit.name}
-                    </h3>
-                    <div style={{
-                      background: orbit.color,
-                      color: 'white',
-                      padding: '0.125rem 0.5rem',
-                      borderRadius: '4px',
-                      fontSize: '0.7rem'
-                    }}>
-                      {orbit.count}
-                    </div>
-                  </div>
-                  <p style={{ fontSize: '0.7rem', color: '#9ca3af', margin: '0.25rem 0' }}>
-                    {orbit.description}
-                  </p>
-                  
-                  {selectedOrbit === orbit.id && (
-                    <div style={{ marginTop: '0.75rem', maxHeight: '120px', overflowY: 'auto' }}>
-                      {orbit.items.map((item, index) => (
-                        <div key={index} style={{ fontSize: '0.7rem', color: '#d1d5db', marginBottom: '0.25rem' }}>
-                          <span style={{ fontWeight: 'bold' }}>{item.name}</span> ({item.korean})
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+          <div style={{
+            color: '#8b4513',
+            fontWeight: 'bold',
+            fontSize: '1.1rem',
+            marginBottom: '10px',
+            textAlign: 'center' as const
+          }}>
+            궤도 선택 (Orbit Selection)
           </div>
+          {orbits.map((orbit) => (
+            <div 
+              key={orbit.id}
+              style={{
+                padding: '8px',
+                margin: '5px 0',
+                border: `1px solid ${orbit.color}`,
+                borderRadius: '5px',
+                cursor: 'pointer',
+                background: selectedOrbit === orbit.id ? `${orbit.color}33` : 'transparent',
+                transition: 'all 0.3s ease',
+                fontSize: '0.9rem'
+              }}
+              onClick={() => setSelectedOrbit(selectedOrbit === orbit.id ? null : orbit.id)}
+            >
+              <span style={{ color: orbit.color }}>●</span> {orbit.id} 궤도 ({orbit.factors.length}개 요소)
+            </div>
+          ))}
+        </div>
+      </div>
 
-          {/* 중앙 - 은하계 */}
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <div style={{ position: 'relative', width: '500px', height: '500px' }}>
-              
-              {/* 궤도 원들 */}
-              {[
-                { radius: 180, color: '#8b5cf6', opacity: 0.3 },
-                { radius: 240, color: '#3b82f6', opacity: 0.3 },
-                { radius: 300, color: '#10b981', opacity: 0.3 },
-                { radius: 360, color: '#8b5cf6', opacity: 0.3 },
-                { radius: 420, color: '#f59e0b', opacity: 0.3 }
-              ].map((orbit, index) => (
-                <div
-                  key={index}
-                  style={{
-                    position: 'absolute',
-                    width: `${orbit.radius}px`,
-                    height: `${orbit.radius}px`,
-                    left: '50%',
-                    top: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    border: `1px solid ${orbit.color}`,
-                    borderRadius: '50%',
-                    opacity: orbit.opacity
-                  }}
-                />
-              ))}
+      {/* 중앙 은하계 영역 */}
+      <div style={{
+        position: 'relative' as const,
+        width: '100%',
+        height: '800px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: '150px'
+      }}>
+        {/* 중앙 코어 */}
+        <div style={{
+          position: 'absolute' as const,
+          width: '60px',
+          height: '60px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, #ffffff, #ffd700)',
+          boxShadow: '0 0 50px #ffd700, 0 0 100px #ffd700aa',
+          zIndex: 15,
+          animation: 'pulse 3s ease-in-out infinite'
+        }}>
+          <div style={{
+            position: 'absolute' as const,
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            fontSize: '10px',
+            fontWeight: 'bold',
+            color: '#000',
+            textAlign: 'center' as const
+          }}>
+            CORE<br/>핵심
+          </div>
+        </div>
 
-              {/* 중심 핵 - Citta */}
-              <div style={{
-                position: 'absolute',
+        {/* 궤도 렌더링 */}
+        {orbits.map((orbit) => (
+          <div key={orbit.id}>
+            {/* 궤도 선 */}
+            <div
+              style={{
+                position: 'absolute' as const,
+                width: `${orbit.radius * 2}px`,
+                height: `${orbit.radius * 2}px`,
+                border: `1px solid ${orbit.color}44`,
+                borderRadius: '50%',
                 left: '50%',
                 top: '50%',
                 transform: 'translate(-50%, -50%)',
-                width: '64px',
-                height: '64px',
-                background: 'linear-gradient(135deg, #f97316, #dc2626)',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 0 30px rgba(249, 115, 22, 0.5)',
-                border: '4px solid #fbbf24',
-                zIndex: 20,
-                fontWeight: 'bold',
-                fontSize: '12px',
-                textAlign: 'center'
-              }}>
-                <div>
-                  <div>Citta</div>
-                  <div style={{ fontSize: '8px' }}>마음</div>
-                </div>
-              </div>
-
-              {/* 궤도별 요소들 */}
-              {renderOrbitElements(universalFactors, 90, '#3b82f6', 'S')}
-              {renderOrbitElements(particularFactors, 120, '#10b981', 'P')}
-              {renderOrbitElements(beautifulFactors, 150, '#8b5cf6', 'D')}
-              {renderOrbitElements(wisdomFactor, 180, '#f59e0b', 'F')}
-
-              {/* 궤도 레이블 */}
-              <div style={{ position: 'absolute', left: '58%', top: '35%', color: '#3b82f6', fontWeight: 'bold' }}>S</div>
-              <div style={{ position: 'absolute', left: '62%', top: '30%', color: '#10b981', fontWeight: 'bold' }}>P</div>
-              <div style={{ position: 'absolute', left: '66%', top: '25%', color: '#8b5cf6', fontWeight: 'bold' }}>D</div>
-              <div style={{ position: 'absolute', left: '70%', top: '20%', color: '#f59e0b', fontWeight: 'bold' }}>F</div>
+                opacity: selectedOrbit === null || selectedOrbit === orbit.id ? 1 : 0.3,
+                transition: 'opacity 0.3s ease'
+              }}
+            />
+            {/* 궤도 요소들 */}
+            <div style={{ 
+              opacity: selectedOrbit === null || selectedOrbit === orbit.id ? 1 : 0.3,
+              transition: 'opacity 0.3s ease'
+            }}>
+              {renderOrbitElements(orbit.factors, orbit.radius, orbit.color, orbit.id)}
             </div>
           </div>
+        ))}
 
-          {/* 우측 - 어둠의 성운 정보 */}
-          <div>
-            <div style={{
-              background: 'rgba(0,0,0,0.5)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '12px',
-              padding: '1.5rem',
-              border: '2px solid #ef4444'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#ef4444', margin: 0 }}>
-                  어둠의 성운
-                </h2>
-                <div style={{
-                  background: '#ef4444',
-                  color: 'white',
-                  padding: '0.25rem 0.75rem',
-                  borderRadius: '9999px',
-                  fontSize: '0.8rem',
-                  fontWeight: 'bold'
-                }}>
-                  14개
-                </div>
-              </div>
-              <p style={{ fontSize: '0.9rem', color: '#9ca3af', marginBottom: '1rem' }}>
-                우주 전체에 퍼진 붉은 성운 가스들
-              </p>
-              
-              <button
-                style={{
-                  width: '100%',
-                  background: '#ef4444',
-                  color: 'white',
-                  padding: '0.5rem',
-                  borderRadius: '8px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '0.9rem',
-                  transition: 'background 0.3s ease'
-                }}
-                onClick={() => setExpandedSection(expandedSection === 'evil' ? null : 'evil')}
-                onMouseOver={(e) => e.target.style.background = '#dc2626'}
-                onMouseOut={(e) => e.target.style.background = '#ef4444'}
-              >
-                {expandedSection === 'evil' ? '목록 접기' : '전체 목록 보기'}
-              </button>
-              
-              {expandedSection === 'evil' && (
-                <div style={{
-                  marginTop: '1rem',
-                  maxHeight: '200px',
-                  overflowY: 'auto'
-                }}>
-                  {unwholesomeFactors.map((factor, index) => (
-                    <div key={index} style={{
-                      background: 'rgba(239, 68, 68, 0.2)',
-                      padding: '0.5rem',
-                      borderRadius: '6px',
-                      marginBottom: '0.5rem'
-                    }}>
-                      <div style={{ fontWeight: 'bold', color: '#ef4444', fontSize: '0.8rem' }}>
-                        {factor.name}
-                      </div>
-                      <div style={{ fontSize: '0.7rem', color: '#f87171' }}>
-                        {factor.korean} - {factor.description}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* 우주 통계 */}
-            <div style={{
-              background: 'rgba(0,0,0,0.4)',
-              borderRadius: '8px',
-              padding: '1rem',
-              marginTop: '1rem',
-              border: '1px solid #6b7280'
-            }}>
-              <h3 style={{ fontWeight: 'bold', color: '#d1d5db', marginBottom: '0.75rem', fontSize: '1rem' }}>
-                우주 통계
-              </h3>
-              <div style={{ fontSize: '0.9rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                  <span style={{ color: '#9ca3af' }}>총 정신요소</span>
-                  <span style={{ color: 'white', fontWeight: 'bold' }}>46개</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                  <span style={{ color: '#10b981' }}>은하계 내 (선한)</span>
-                  <span style={{ color: '#34d399', fontWeight: 'bold' }}>32개 (69.6%)</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                  <span style={{ color: '#ef4444' }}>성운 가스 (불선)</span>
-                  <span style={{ color: '#f87171', fontWeight: 'bold' }}>14개 (30.4%)</span>
-                </div>
-                <div style={{ borderTop: '1px solid #6b7280', paddingTop: '0.75rem' }}>
-                  <div style={{ fontSize: '0.7rem', color: '#9ca3af' }}>
-                    🌌 성운 밀도: 우주 전체에 분산<br />
-                    🔴 가스 구름: 70개 지점에 확산<br />
-                    📍 라벨: 항상 표시됨
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 하단 - 어둠의 성운 맵핑 */}
-        <div style={{ marginBottom: '2rem' }}>
-          <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ef4444', marginBottom: '1.5rem', textAlign: 'center' }}>
-            어둠의 성운 전체 맵핑
-          </h3>
-          <div style={{
-            background: 'rgba(0,0,0,0.6)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: '16px',
-            padding: '1.5rem',
-            border: '2px solid #ef4444'
-          }}>
-            <p style={{ textAlign: 'center', marginBottom: '1.5rem', color: '#d1d5db' }}>
-              우주 전체에 흩어진 색색의 성운 가스들은 14개의 불선한 정신요소들을 나타냅니다.<br />
-              각 성운에는 항상 라벨이 표시되며, 호버하면 더 밝게 빛납니다.
-            </p>
-            
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(7, 1fr)',
-              gap: '1rem'
-            }}>
-              {unwholesomeFactors.map((factor, index) => (
-                <div
-                  key={index}
-                  style={{
-                    background: 'rgba(239, 68, 68, 0.2)',
-                    padding: '0.75rem',
-                    borderRadius: '8px',
-                    border: '1px solid #dc2626',
-                    textAlign: 'center',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onMouseEnter={() => setHoveredElement(factor)}
-                  onMouseLeave={() => setHoveredElement(null)}
-                  onMouseOver={(e) => e.currentTarget.style.borderColor = '#ef4444'}
-                  onMouseOut={(e) => e.currentTarget.style.borderColor = '#dc2626'}
-                >
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                  }}>
-                    <div style={{
-                      width: '16px',
-                      height: '16px',
-                      background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-                      borderRadius: '50%',
-                      boxShadow: '0 0 8px #ef4444'
-                    }} />
-                    <div>
-                      <div style={{ fontWeight: 'bold', color: '#ef4444', fontSize: '0.7rem' }}>
-                        {factor.name}
-                      </div>
-                      <div style={{ color: '#f87171', fontSize: '0.6rem' }}>
-                        {factor.korean}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
-              <p style={{ fontSize: '0.9rem', color: '#9ca3af' }}>
-                💫 성운 색상: <span style={{ color: '#ef4444' }}>빨강</span>, <span style={{ color: '#f97316' }}>주황</span>, <span style={{ color: '#8b5cf6' }}>보라</span>, <span style={{ color: '#ec4899' }}>분홍</span>, <span style={{ color: '#f59e0b' }}>황금</span>
-              </p>
-              <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.5rem' }}>
-                각 색상은 불선한 요소의 특성과 강도를 나타냅니다
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* 하단 우주 범례 */}
-        <div style={{
-          background: 'rgba(0,0,0,0.5)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '12px',
-          padding: '1.5rem',
-          border: '1px solid #6b7280'
+        {/* 악한 요소들 패널 */}
+        <div style={{ 
+          position: 'absolute' as const, 
+          bottom: '-100px', 
+          left: '20px', 
+          right: '20px',
+          display: 'flex',
+          justifyContent: 'center'
         }}>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'white', marginBottom: '1rem', textAlign: 'center' }}>
-            우주 구성 요소
-          </h3>
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(5, 1fr)',
-            gap: '1rem',
-            textAlign: 'center'
+            background: 'rgba(239, 68, 68, 0.1)',
+            border: '2px solid #ef4444',
+            borderRadius: '15px',
+            padding: '15px',
+            minWidth: '400px',
+            backdropFilter: 'blur(10px)'
           }}>
-            {[
-              { icon: '☀️', title: '중심 태양', desc: 'Citta (마음)', color: '#f97316' },
-              { icon: '🪐', title: '행성들', desc: '선한 정신 요소들', color: '#3b82f6' },
-              { icon: '🌌', title: '4개 궤도', desc: 'S-P-D-F 시스템', color: '#10b981' },
-              { icon: '☁️', title: '어둠의 성운', desc: '우주 전체에 퍼진 불선 요소들', color: '#ef4444' },
-              { icon: '✨', title: '성운 가스', desc: '불선 요소 + 라벨 표시', color: '#f59e0b' }
-            ].map((item, index) => (
-              <div key={index} style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}>
-                <div style={{ fontSize: '2rem' }}>{item.icon}</div>
-                <div style={{ color: item.color, fontWeight: 'bold', fontSize: '0.9rem' }}>
-                  {item.title}
-                </div>
-                <div style={{ color: '#9ca3af', fontSize: '0.7rem' }}>
-                  {item.desc}
-                </div>
+            <div 
+              style={{
+                fontWeight: 'bold',
+                fontSize: '1.1rem',
+                marginBottom: '10px',
+                cursor: 'pointer',
+                padding: '5px',
+                borderRadius: '5px',
+                background: '#ef4444',
+                color: 'white',
+                textAlign: 'center' as const
+              }}
+              onClick={() => setExpandedSection(expandedSection === 'evil' ? null : 'evil')}
+              onMouseOver={(e) => (e.target as HTMLElement).style.background = '#dc2626'}
+              onMouseOut={(e) => (e.target as HTMLElement).style.background = '#ef4444'}
+            >
+              악한 요소들 (Evil Elements) {expandedSection === 'evil' ? '▼' : '▶'}
+            </div>
+            {expandedSection === 'evil' && (
+              <div style={{ fontSize: '0.9rem', lineHeight: '1.4' }}>
+                <strong>중앙 파괴력:</strong> 증오, 탐욕, 분노, 교만, 질투, 게으름, 폭식<br/>
+                <strong>확산 요소:</strong> 거짓말, 배신, 복수, 잔혹, 무관심, 절망, 공포<br/>
+                <strong>부패 요소:</strong> 부정, 편견, 고집, 냉담, 이기심, 불신, 혼란<br/>
+                <strong>파괴 요소:</strong> 파괴욕, 허무주의, 극단주의, 맹신, 광신, 독선
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>
 
-      {/* 호버된 요소 정보 */}
+      {/* 정보 패널 */}
+      <div style={{
+        position: 'absolute' as const,
+        bottom: '20px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        background: 'rgba(0, 0, 0, 0.8)',
+        border: '1px solid #444',
+        borderRadius: '10px',
+        padding: '15px',
+        minWidth: '300px',
+        backdropFilter: 'blur(10px)',
+        textAlign: 'center' as const
+      }}>
+        <h3 style={{ margin: '0 0 10px 0', color: '#ffd700' }}>마음 은하계 설명</h3>
+        <p style={{ margin: '0', fontSize: '0.9rem', lineHeight: '1.4' }}>
+          중앙 코어를 중심으로 선한 요소들이 궤도를 그리며 순환합니다. 
+          각 궤도는 서로 다른 차원의 덕목들을 나타내며, 
+          조화롭게 상호작용하여 완전한 인격을 형성합니다.
+        </p>
+      </div>
+
+      {/* 호버 시 상세 정보 */}
       {hoveredElement && (
         <div style={{
-          position: 'fixed',
-          top: '20px',
-          right: '20px',
-          background: 'rgba(0,0,0,0.9)',
-          color: 'white',
-          padding: '1rem',
-          borderRadius: '8px',
-          maxWidth: '300px',
-          zIndex: 1000,
-          border: '1px solid white'
+          position: 'absolute' as const,
+          top: '50%',
+          right: '50px',
+          transform: 'translateY(-50%)',
+          background: 'rgba(0, 0, 0, 0.9)',
+          border: '2px solid #ffd700',
+          borderRadius: '15px',
+          padding: '20px',
+          maxWidth: '250px',
+          zIndex: 50,
+          boxShadow: '0 0 30px rgba(255, 215, 0, 0.5)'
         }}>
-          <h3 style={{ fontWeight: 'bold', fontSize: '1.1rem', margin: '0 0 0.5rem 0' }}>
+          <h3 style={{ 
+            margin: '0 0 10px 0', 
+            color: '#ffd700',
+            fontSize: '1.2rem'
+          }}>
             {hoveredElement.name}
           </h3>
-          <p style={{ fontSize: '0.9rem', color: '#d1d5db', margin: '0 0 0.5rem 0' }}>
+          <p style={{ 
+            margin: '0 0 10px 0', 
+            color: '#87ceeb',
+            fontSize: '1rem',
+            fontWeight: 'bold'
+          }}>
             {hoveredElement.korean}
           </p>
-          <p style={{ fontSize: '0.8rem', color: '#9ca3af', margin: 0 }}>
+          <p style={{ 
+            margin: '0', 
+            fontSize: '0.9rem', 
+            lineHeight: '1.4',
+            color: '#fff'
+          }}>
             {hoveredElement.description}
           </p>
         </div>
@@ -711,12 +449,32 @@ const CompleteMindGalaxy = () => {
       {/* CSS 애니메이션 */}
       <style>{`
         @keyframes pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.1); }
+        }
+        @keyframes twinkle {
           0%, 100% { opacity: 0.2; }
-          50% { opacity: 0.5; }
+          50% { opacity: 1; }
+        }
+        @keyframes float-core {
+          0%, 100% { transform: translate(-50%, -50%) scale(1); }
+          50% { transform: translate(-50%, -50%) scale(1.05); }
+        }
+        @keyframes float-second {
+          0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+          50% { transform: translate(-50%, -50%) rotate(5deg); }
+        }
+        @keyframes float-third {
+          0%, 100% { transform: translate(-50%, -50%) translateY(0px); }
+          50% { transform: translate(-50%, -50%) translateY(-3px); }
+        }
+        @keyframes float-fourth {
+          0%, 100% { transform: translate(-50%, -50%) translateX(0px); }
+          50% { transform: translate(-50%, -50%) translateX(2px); }
         }
       `}</style>
     </div>
   );
 };
 
-export default CompleteMindGalaxy;
+export default MindGalaxy;
